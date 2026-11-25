@@ -1,1 +1,2108 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070f">
+<title>NEXUS — دستیار هوشمند</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* ============ RESET & BASE ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  transition: background .3s, color .3s;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; }
+a { color: var(--accent); text-decoration: none; }
 
+/* ============ THEME VARS ============ */
+:root, [data-theme="dark"] {
+  --bg: #05070f;
+  --bg-2: #0a0f1f;
+  --card: #0e1526;
+  --card-2: #131b30;
+  --border: #1e2a44;
+  --accent: #00d4ff;
+  --accent-2: #0077ff;
+  --accent-glow: rgba(0, 212, 255, .35);
+  --text: #e8eefc;
+  --text-dim: #8a96b0;
+  --success: #00e0a1;
+  --danger: #ff4d6d;
+  --warning: #ffb020;
+  --shadow: 0 8px 24px rgba(0, 0, 0, .4);
+}
+[data-theme="light"] {
+  --bg: #f4f7fc;
+  --bg-2: #ffffff;
+  --card: #ffffff;
+  --card-2: #eef2f9;
+  --border: #dde3ee;
+  --accent: #0077ff;
+  --accent-2: #0056c7;
+  --accent-glow: rgba(0, 119, 255, .25);
+  --text: #0a0f1f;
+  --text-dim: #5a6683;
+  --shadow: 0 8px 24px rgba(0, 30, 80, .08);
+}
+
+/* ============ LAYOUT ============ */
+.app {
+  min-height: 100vh;
+  padding-bottom: 88px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 119, 255, .12), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(0, 212, 255, .10), transparent 40%),
+    var(--bg);
+}
+.app-header {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(5, 7, 15, .85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+[data-theme="light"] .app-header { background: rgba(255, 255, 255, .85); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-logo {
+  width: 38px; height: 38px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 212, 255, .18), rgba(0, 119, 255, .18));
+  border: 1px solid var(--border);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.brand-text { display: flex; flex-direction: column; }
+.brand-name {
+  font-weight: 800; font-size: 18px; letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-sub { font-size: 11px; color: var(--text-dim); }
+.header-btn {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--accent);
+  transition: transform .2s, box-shadow .2s;
+}
+.header-btn:active { transform: scale(.94); }
+
+.app-main { padding: 0 0 20px; }
+.view { display: none; padding: 16px; animation: fadeIn .25s ease; }
+.view.active { display: block; }
+.view[data-view="assistant"].active { display: flex; flex-direction: column; min-height: calc(100vh - 160px); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.view-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.view-head h2 { font-size: 20px; font-weight: 700; }
+.section-title { font-size: 15px; font-weight: 600; margin: 20px 0 10px; color: var(--text); }
+
+/* ============ HERO CARD ============ */
+.hero-card {
+  background: linear-gradient(135deg, var(--card), var(--card-2));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::before {
+  content: ''; position: absolute; top: -60px; left: -60px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+  pointer-events: none;
+}
+.hero-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.avatar {
+  width: 56px; height: 56px; border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; font-weight: 800; font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 0 18px var(--accent-glow);
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar.lg { width: 80px; height: 80px; border-radius: 24px; font-size: 32px; }
+.hero-info { flex: 1; min-width: 0; }
+.hero-greet { font-size: 13px; color: var(--text-dim); }
+.hero-name { font-size: 17px; font-weight: 700; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero-date { font-size: 12px; color: var(--text-dim); }
+.hero-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+.stat { text-align: center; }
+.stat-val { font-size: 20px; font-weight: 800; color: var(--accent); }
+.stat-lbl { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* ============ QUICK GRID ============ */
+.quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.quick-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px 12px; text-align: right;
+  transition: transform .15s, box-shadow .2s, border-color .2s;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.quick-card:active { transform: scale(.97); border-color: var(--accent); }
+.qc-icon { font-size: 26px; }
+.qc-title { font-size: 14px; font-weight: 700; }
+.qc-sub { font-size: 11px; color: var(--text-dim); }
+
+/* ============ CHAT ============ */
+.chat-box {
+  flex: 1; min-height: 320px; max-height: 58vh; overflow-y: auto;
+  padding: 8px 4px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.chat-empty { text-align: center; padding: 40px 20px; color: var(--text-dim); }
+.chat-empty-ico { font-size: 44px; margin-bottom: 10px; }
+.msg { display: flex; flex-direction: column; max-width: 85%; }
+.msg-user { align-self: flex-start; align-items: flex-start; }
+.msg-bot { align-self: flex-end; align-items: flex-end; }
+.msg-bubble {
+  padding: 10px 14px; border-radius: 16px;
+  font-size: 14px; line-height: 1.7;
+  word-break: break-word; white-space: pre-wrap;
+}
+.msg-user .msg-bubble { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #fff; border-bottom-right-radius: 4px; }
+.msg-bot .msg-bubble { background: var(--card-2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.msg-time { font-size: 10px; color: var(--text-dim); margin-top: 3px; padding: 0 4px; }
+.typing .msg-bubble { display: flex; gap: 4px; padding: 14px 16px; }
+.typing .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); animation: bounce 1.2s infinite; }
+.typing .dot:nth-child(2) { animation-delay: .15s; }
+.typing .dot:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-6px); opacity: 1; } }
+
+.chat-input-row { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.chat-input-row input {
+  flex: 1; padding: 12px 14px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); font-size: 14px; outline: none;
+  transition: border-color .2s;
+}
+.chat-input-row input:focus { border-color: var(--accent); }
+.send-btn {
+  width: 46px; height: 46px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #fff; flex-shrink: 0;
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transition: transform .15s;
+}
+.send-btn:active { transform: scale(.92); }
+
+/* ============ TASKS ============ */
+.progress-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px; margin-bottom: 14px;
+}
+.progress-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: var(--text-dim); }
+.progress-bar { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
+.progress-fill {
+  height: 100%; width: 0%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  transition: width .4s ease;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.task-form { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; margin-bottom: 14px; }
+.task-form input {
+  padding: 11px 12px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; outline: none;
+  min-width: 0;
+}
+.task-form input:focus { border-color: var(--accent); }
+.task-form input[type="time"] { width: 110px; }
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+.task-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border);
+  transition: opacity .2s, transform .15s;
+}
+.task-item.done { opacity: .6; }
+.task-item.done .task-title { text-decoration: line-through; color: var(--text-dim); }
+.task-check {
+  width: 24px; height: 24px; border-radius: 8px;
+  border: 2px solid var(--border); background: transparent;
+  color: var(--accent); font-weight: 800; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .2s;
+}
+.task-item.done .task-check { background: var(--accent); border-color: var(--accent); color: #fff; }
+.task-body { flex: 1; min-width: 0; }
+.task-title { font-size: 14px; word-break: break-word; }
+.task-time { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.task-actions { display: flex; gap: 4px; }
+.task-actions button {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--card-2); font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.task-actions button:active { background: var(--border); }
+
+/* ============ CHIPS ============ */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 8px 14px; border-radius: 20px; white-space: nowrap;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 13px; font-weight: 500;
+  transition: all .2s;
+}
+.chip.active {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+/* ============ LEARN ============ */
+.learn-list, .opp-list { display: flex; flex-direction: column; gap: 10px; }
+.learn-item, .opp-item {
+  display: block; padding: 14px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border);
+  transition: border-color .2s, transform .15s;
+}
+.learn-item:active, .opp-item:active { transform: scale(.98); border-color: var(--accent); }
+.learn-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px; }
+.learn-title { font-weight: 700; font-size: 14px; }
+.learn-level { font-size: 10px; padding: 2px 8px; border-radius: 8px; background: var(--card-2); color: var(--accent); white-space: nowrap; }
+.learn-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 6px; }
+.learn-link { font-size: 12px; color: var(--accent); font-weight: 600; }
+.notice {
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(255, 176, 32, .1);
+  border: 1px solid rgba(255, 176, 32, .3);
+  color: var(--warning); font-size: 12px; line-height: 1.7;
+  margin-bottom: 12px;
+}
+.opp-note { font-size: 11px; color: var(--warning); margin-top: 6px; }
+
+/* ============ PLAY ============ */
+.play-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.play-card {
+  padding: 18px; border-radius: 18px;
+  background: var(--card); border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.play-badge {
+  display: inline-block; font-size: 11px; padding: 3px 10px;
+  border-radius: 8px; background: var(--card-2); color: var(--accent);
+  margin-bottom: 10px; font-weight: 600;
+}
+.play-q { font-size: 15px; line-height: 1.8; font-weight: 500; margin-bottom: 14px; }
+.play-actions { display: flex; gap: 8px; margin-top: 12px; }
+.iq-options { display: flex; flex-direction: column; gap: 8px; }
+.iq-opt {
+  padding: 12px; border-radius: 12px; text-align: right;
+  background: var(--card-2); border: 1px solid var(--border);
+  font-size: 14px; transition: all .2s;
+}
+.iq-opt:active { transform: scale(.98); }
+.iq-opt.correct { background: rgba(0, 224, 161, .15); border-color: var(--success); color: var(--success); }
+.iq-opt.wrong { background: rgba(255, 77, 109, .15); border-color: var(--danger); color: var(--danger); }
+.result { margin-top: 12px; font-size: 14px; font-weight: 600; min-height: 20px; }
+.result .ok { color: var(--success); }
+.result .no { color: var(--danger); }
+.board { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.board-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--card-2); font-size: 14px;
+}
+.board-row.you { background: linear-gradient(135deg, rgba(0, 119, 255, .15), rgba(0, 212, 255, .1)); border: 1px solid var(--accent); }
+.b-rank { font-weight: 800; color: var(--accent); width: 32px; }
+.b-name { flex: 1; }
+.b-score { font-weight: 700; color: var(--accent); }
+.stats-mini { display: flex; gap: 16px; justify-content: center; margin-top: 14px; font-size: 13px; color: var(--text-dim); }
+.stats-mini b { color: var(--accent); }
+
+/* ============ TOOLS ============ */
+.tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.tool-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 6px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600;
+  transition: all .15s;
+}
+.tool-card:active { transform: scale(.95); border-color: var(--accent); }
+.tc-icon { font-size: 24px; }
+.tool-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px;
+  animation: fadeIn .25s ease;
+}
+.tool-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--accent); }
+.row { margin-bottom: 10px; }
+.row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.input {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--text); font-size: 14px; outline: none;
+}
+.input:focus { border-color: var(--accent); }
+.input.textarea { min-height: 100px; resize: vertical; font-family: inherit; line-height: 1.7; }
+.input-sm { padding: 6px 10px; border-radius: 8px; background: var(--card-2); border: 1px solid var(--border); color: var(--text); font-size: 12px; width: 140px; outline: none; }
+.calc-display {
+  padding: 16px; border-radius: 12px; margin-bottom: 10px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  text-align: left; direction: ltr; font-size: 22px; font-weight: 700;
+  min-height: 56px; word-break: break-all;
+  color: var(--accent); overflow-x: auto;
+}
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.calc-btn {
+  padding: 14px 0; border-radius: 10px;
+  background: var(--card-2); border: 1px solid var(--border);
+  font-size: 16px; font-weight: 600;
+  transition: all .15s;
+}
+.calc-btn:active { transform: scale(.95); background: var(--border); }
+.calc-btn.calc-op { color: var(--accent); }
+.conv-result {
+  padding: 14px; border-radius: 12px; margin-top: 12px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  text-align: center; font-size: 20px; font-weight: 800; color: var(--accent);
+  direction: ltr;
+}
+.wc-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+.wc-stats > div { padding: 10px; border-radius: 10px; background: var(--card-2); text-align: center; font-size: 12px; color: var(--text-dim); }
+.wc-stats b { color: var(--accent); font-size: 16px; display: block; margin-bottom: 2px; }
+.pw-result {
+  padding: 14px; border-radius: 12px; margin-bottom: 12px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  text-align: center; font-family: monospace; font-size: 15px; font-weight: 700;
+  color: var(--accent); direction: ltr; word-break: break-all;
+  letter-spacing: 1px;
+}
+.pw-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+.check { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.check input { accent-color: var(--accent); }
+.timer-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.timer-display {
+  text-align: center; font-size: 40px; font-weight: 800;
+  color: var(--accent); margin: 16px 0; direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+.timer-actions { display: flex; gap: 8px; justify-content: center; }
+.notes-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.note-item { padding: 10px 12px; border-radius: 10px; background: var(--card-2); }
+.note-text { font-size: 13px; line-height: 1.7; word-break: break-word; }
+.note-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px; color: var(--text-dim); }
+
+/* ============ PROFILE ============ */
+.profile-card {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px; border-radius: 20px;
+  background: linear-gradient(135deg, var(--card), var(--card-2));
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.profile-name { font-size: 18px; font-weight: 700; margin-top: 10px; }
+.profile-user { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.mini-stat {
+  padding: 12px 6px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  text-align: center;
+}
+.mini-val { font-size: 18px; font-weight: 800; color: var(--accent); }
+.mini-lbl { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.achieve-list { display: flex; flex-direction: column; gap: 6px; }
+.ach {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--border);
+}
+.ach.locked { opacity: .5; }
+.ach.unlocked { border-color: var(--accent); }
+.ach-icon { font-size: 22px; }
+.ach-body { flex: 1; }
+.ach-title { font-size: 13px; font-weight: 700; }
+.ach-desc { font-size: 11px; color: var(--text-dim); }
+.ach-status { font-size: 14px; }
+.ach.unlocked .ach-status { color: var(--accent); }
+.settings { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 4px 14px; }
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0; font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-of-type { border-bottom: none; }
+.switch {
+  width: 44px; height: 24px; border-radius: 12px;
+  background: var(--card-2); border: 1px solid var(--border);
+  position: relative; transition: background .2s;
+}
+.switch::after {
+  content: ''; position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--text-dim); transition: all .2s;
+}
+.switch.on { background: var(--accent); border-color: var(--accent); }
+.switch.on::after { right: calc(100% - 20px); background: #fff; }
+
+/* ============ MORE ============ */
+.more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.more-card {
+  padding: 24px 12px; border-radius: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600;
+  transition: all .15s;
+}
+.more-card:active { transform: scale(.96); border-color: var(--accent); }
+.mc-icon { font-size: 32px; }
+
+/* ============ BUTTONS ============ */
+.btn-primary {
+  padding: 11px 18px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #fff; font-weight: 700; font-size: 13px;
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transition: transform .15s;
+}
+.btn-primary:active { transform: scale(.96); }
+.btn-ghost {
+  padding: 10px 14px; border-radius: 12px;
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  transition: background .2s;
+}
+.btn-ghost:active { background: var(--border); }
+.btn-danger {
+  padding: 8px 14px; border-radius: 10px;
+  background: rgba(255, 77, 109, .15);
+  border: 1px solid var(--danger);
+  color: var(--danger); font-size: 12px; font-weight: 600;
+}
+
+/* ============ MISC ============ */
+.muted { color: var(--text-dim); }
+.small { font-size: 11px; }
+.center { text-align: center; }
+.mt { margin-top: 10px; }
+.empty { padding: 24px; text-align: center; color: var(--text-dim); font-size: 13px; }
+
+/* ============ BOTTOM NAV ============ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  background: rgba(5, 7, 15, .92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+}
+[data-theme="light"] .bottom-nav { background: rgba(255, 255, 255, .92); }
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 2px; border-radius: 10px;
+  color: var(--text-dim); font-size: 10px; font-weight: 500;
+  transition: color .2s;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active .nav-ico { transform: translateY(-2px); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+.nav-ico { font-size: 18px; transition: transform .2s, filter .2s; }
+.nav-lbl { font-size: 10px; }
+
+/* ============ TOAST ============ */
+.toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+  padding: 10px 18px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--accent);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .5), 0 0 20px var(--accent-glow);
+  opacity: 0; pointer-events: none; z-index: 200;
+  transition: opacity .3s, transform .3s;
+  max-width: 90%; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ============ RESPONSIVE ============ */
+@media (min-width: 600px) {
+  .app-main { max-width: 640px; margin: 0 auto; }
+  .quick-grid { grid-template-columns: repeat(3, 1fr); }
+  .tools-grid { grid-template-columns: repeat(4, 1fr); }
+  .bottom-nav { max-width: 640px; margin: 0 auto; border-radius: 16px 16px 0 0; }
+}
+</style>
+</head>
+<body>
+<div id="app" class="app">
+
+  <header class="app-header" id="appHeader">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00d4ff"/>
+              <stop offset="100%" stop-color="#0077ff"/>
+            </linearGradient>
+          </defs>
+          <path d="M6 26 L6 6 L26 26 L26 6" fill="none" stroke="url(#g1)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">NEXUS</span>
+        <span class="brand-sub">دستیار هوشمند</span>
+      </div>
+    </div>
+    <button class="header-btn" id="themeToggle" aria-label="تغییر تم">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </header>
+
+  <main class="app-main" id="appMain">
+
+    <!-- HOME -->
+    <section class="view active" data-view="home">
+      <div class="hero-card">
+        <div class="hero-top">
+          <div class="avatar" id="homeAvatar">N</div>
+          <div class="hero-info">
+            <div class="hero-greet" id="greetText">سلام 👋</div>
+            <div class="hero-name" id="heroName">کاربر</div>
+            <div class="hero-date" id="heroDate">—</div>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><div class="stat-val" id="homePoints">0</div><div class="stat-lbl">امتیاز</div></div>
+          <div class="stat"><div class="stat-val" id="homeDays">0</div><div class="stat-lbl">روز فعالیت</div></div>
+          <div class="stat"><div class="stat-val" id="homeTasks">0</div><div class="stat-lbl">کار انجام‌شده</div></div>
+        </div>
+      </div>
+
+      <h2 class="section-title">دسترسی سریع</h2>
+      <div class="quick-grid">
+        <button class="quick-card" data-goto="assistant"><div class="qc-icon">💬</div><div class="qc-title">دستیار هوشمند</div><div class="qc-sub">گفت‌وگو با NEXUS</div></button>
+        <button class="quick-card" data-goto="tasks"><div class="qc-icon">✅</div><div class="qc-title">کارهای روزانه</div><div class="qc-sub">مدیریت وظایف</div></button>
+        <button class="quick-card" data-goto="learn"><div class="qc-icon">📚</div><div class="qc-title">مرکز یادگیری</div><div class="qc-sub">دوره‌ها و منابع</div></button>
+        <button class="quick-card" data-goto="opportunities"><div class="qc-icon">🚀</div><div class="qc-title">فرصت‌ها</div><div class="qc-sub">بورسیه و رویداد</div></button>
+        <button class="quick-card" data-goto="play"><div class="qc-icon">🎮</div><div class="qc-title">سرگرمی</div><div class="qc-sub">معما و آزمون</div></button>
+        <button class="quick-card" data-goto="tools"><div class="qc-icon">🧰</div><div class="qc-title">جعبه ابزار</div><div class="qc-sub">ابزارهای کاربردی</div></button>
+      </div>
+    </section>
+
+    <!-- ASSISTANT -->
+    <section class="view" data-view="assistant">
+      <div class="view-head">
+        <h2>دستیار هوشمند</h2>
+        <button class="btn-ghost" id="clearChatBtn">پاک‌کردن</button>
+      </div>
+      <div class="chat-box" id="chatBox"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="پیام خود را بنویسید..." autocomplete="off">
+        <button class="send-btn" id="chatSend" aria-label="ارسال">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+      <p class="muted small center">حالت نمایشی • برای اتصال واقعی، endpoint بک‌اند را در تنظیمات وارد کنید.</p>
+    </section>
+
+    <!-- TASKS -->
+    <section class="view" data-view="tasks">
+      <div class="view-head"><h2>مدیریت روزانه</h2></div>
+      <div class="progress-card">
+        <div class="progress-row"><span>پیشرفت امروز</span><span id="taskProgressText">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="taskProgressBar"></div></div>
+      </div>
+      <form class="task-form" id="taskForm">
+        <input type="text" id="taskTitle" placeholder="عنوان کار جدید..." required maxlength="100">
+        <input type="time" id="taskTime">
+        <button type="submit" class="btn-primary">افزودن</button>
+      </form>
+      <div class="task-list" id="taskList"></div>
+    </section>
+
+    <!-- LEARN -->
+    <section class="view" data-view="learn">
+      <div class="view-head"><h2>مرکز یادگیری</h2></div>
+      <div class="chips" id="learnCats"></div>
+      <div class="learn-list" id="learnList"></div>
+    </section>
+
+    <!-- OPPORTUNITIES -->
+    <section class="view" data-view="opportunities">
+      <div class="view-head"><h2>مرکز فرصت‌ها</h2></div>
+      <div class="notice">⚠️ این فهرست شامل منابع و رویدادهای شناخته‌شده است. تاریخ‌ها و شرایط را حتماً در سایت رسمی بررسی کنید.</div>
+      <div class="chips" id="oppCats"></div>
+      <div class="opp-list" id="oppList"></div>
+    </section>
+
+    <!-- PLAY -->
+    <section class="view" data-view="play">
+      <div class="view-head"><h2>بخش سرگرمی</h2></div>
+      <div class="play-tabs">
+        <button class="chip active" data-playtab="riddle">معما</button>
+        <button class="chip" data-playtab="iq">آزمون هوش</button>
+        <button class="chip" data-playtab="board">رتبه‌بندی</button>
+      </div>
+      <div id="playArea"></div>
+    </section>
+
+    <!-- TOOLS -->
+    <section class="view" data-view="tools">
+      <div class="view-head"><h2>جعبه ابزار</h2></div>
+      <div class="tools-grid" id="toolsGrid"></div>
+      <div id="toolPanel"></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view" data-view="profile">
+      <div class="view-head"><h2>پروفایل</h2></div>
+      <div class="profile-card">
+        <div class="avatar lg" id="profileAvatar">N</div>
+        <div class="profile-name" id="profileName">کاربر</div>
+        <div class="profile-user" id="profileUsername">@guest</div>
+      </div>
+      <div class="stat-grid">
+        <div class="mini-stat"><div class="mini-val" id="pPoints">0</div><div class="mini-lbl">امتیاز</div></div>
+        <div class="mini-stat"><div class="mini-val" id="pDays">0</div><div class="mini-lbl">روز</div></div>
+        <div class="mini-stat"><div class="mini-val" id="pTasks">0</div><div class="mini-lbl">کار</div></div>
+        <div class="mini-stat"><div class="mini-val" id="pAchieve">0</div><div class="mini-lbl">دستاورد</div></div>
+      </div>
+      <h3 class="section-title">دستاوردها</h3>
+      <div class="achieve-list" id="achieveList"></div>
+      <h3 class="section-title">تنظیمات</h3>
+      <div class="settings">
+        <div class="setting-row"><span>حالت روشن/تیره</span><button class="switch" id="themeSwitch"></button></div>
+        <div class="setting-row"><span>Endpoint دستیار (اختیاری)</span><input type="url" id="aiEndpoint" placeholder="https://..." class="input-sm"></div>
+        <div class="setting-row"><span>پاک‌کردن همه داده‌ها</span><button class="btn-danger" id="wipeBtn">حذف</button></div>
+        <p class="muted small">اطلاعات کاربر تلگرام فقط جهت نمایش است و بدون اعتبارسنجی سرور معتبر نیست.</p>
+      </div>
+    </section>
+
+    <!-- MORE -->
+    <section class="view" data-view="more">
+      <div class="view-head"><h2>بیشتر</h2></div>
+      <div class="more-grid">
+        <button class="more-card" data-goto="opportunities"><div class="mc-icon">🚀</div><div>فرصت‌ها</div></button>
+        <button class="more-card" data-goto="play"><div class="mc-icon">🎮</div><div>سرگرمی</div></button>
+        <button class="more-card" data-goto="tools"><div class="mc-icon">🧰</div><div>جعبه ابزار</div></button>
+        <button class="more-card" data-goto="profile"><div class="mc-icon">👤</div><div>پروفایل</div></button>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-target="home"><span class="nav-ico">🏠</span><span class="nav-lbl">خانه</span></button>
+    <button class="nav-btn" data-target="assistant"><span class="nav-ico">💬</span><span class="nav-lbl">دستیار</span></button>
+    <button class="nav-btn" data-target="tasks"><span class="nav-ico">✅</span><span class="nav-lbl">کارها</span></button>
+    <button class="nav-btn" data-target="learn"><span class="nav-ico">📚</span><span class="nav-lbl">یادگیری</span></button>
+    <button class="nav-btn" data-target="more"><span class="nav-ico">⋯</span><span class="nav-lbl">بیشتر</span></button>
+  </nav>
+
+</div>
+<script>
+/* =========================================================
+   NEXUS — Telegram Mini App
+   ========================================================= */
+
+/* ============ CONFIG ============ */
+const APP = {
+  name: 'NEXUS',
+  version: '1.0.0',
+  prefix: 'nexus:'
+};
+
+/* ============ STORAGE ============ */
+const Store = {
+  get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(APP.prefix + key);
+      return raw === null ? fallback : JSON.parse(raw);
+    } catch (e) { console.warn('Store.get', e); return fallback; }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(APP.prefix + key, JSON.stringify(value));
+      return true;
+    } catch (e) { console.warn('Store.set', e); return false; }
+  },
+  clear() {
+    try {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith(APP.prefix))
+        .forEach(k => localStorage.removeItem(k));
+    } catch (e) {}
+  }
+};
+
+/* ============ TELEGRAM ============ */
+const TG = {
+  available: false,
+  user: { id: 0, first_name: 'کاربر', last_name: '', username: '', photo_url: '' },
+  init() {
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        const wa = window.Telegram.WebApp;
+        wa.ready();
+        try { wa.expand(); } catch (e) {}
+        try { wa.setHeaderColor('#05070f'); } catch (e) {}
+        try { wa.setBackgroundColor('#05070f'); } catch (e) {}
+        this.available = true;
+        const u = (wa.initDataUnsafe && wa.initDataUnsafe.user) || null;
+        if (u) {
+          this.user = {
+            id: u.id || 0,
+            first_name: u.first_name || 'کاربر',
+            last_name: u.last_name || '',
+            username: u.username || '',
+            photo_url: u.photo_url || ''
+          };
+        }
+      }
+    } catch (e) { console.warn('TG init', e); }
+  },
+  haptic(type) {
+    if (!this.available) return;
+    try {
+      const h = window.Telegram.WebApp.HapticFeedback;
+      if (!h) return;
+      if (['success', 'error', 'warning'].includes(type)) h.notificationOccurred(type);
+      else h.impactOccurred(type || 'light');
+    } catch (e) {}
+  }
+};
+
+/* ============ STATE ============ */
+const State = {
+  points: 0,
+  activityDays: [],
+  tasks: [],
+  chat: [],
+  notes: [],
+  theme: 'dark',
+  aiEndpoint: '',
+  achievements: [],
+  play: { riddleSolved: 0, iqSolved: 0 },
+  views: [],
+  counters: { tasksAdded: 0, tasksDone: 0, msgsSent: 0 }
+};
+
+function loadState() {
+  State.points = Store.get('points', 0);
+  State.activityDays = Store.get('activityDays', []);
+  State.tasks = Store.get('tasks', []);
+  State.chat = Store.get('chat', []);
+  State.notes = Store.get('notes', []);
+  State.theme = Store.get('theme', 'dark');
+  State.aiEndpoint = Store.get('aiEndpoint', '');
+  State.achievements = Store.get('achievements', []);
+  State.play = Store.get('play', { riddleSolved: 0, iqSolved: 0 });
+  State.views = Store.get('views', []);
+  State.counters = Store.get('counters', { tasksAdded: 0, tasksDone: 0, msgsSent: 0 });
+}
+
+function saveState() {
+  Store.set('points', State.points);
+  Store.set('activityDays', State.activityDays);
+  Store.set('tasks', State.tasks);
+  Store.set('chat', State.chat);
+  Store.set('notes', State.notes);
+  Store.set('theme', State.theme);
+  Store.set('aiEndpoint', State.aiEndpoint);
+  Store.set('achievements', State.achievements);
+  Store.set('play', State.play);
+  Store.set('views', State.views);
+  Store.set('counters', State.counters);
+}
+
+/* ============ UTILITIES ============ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+function timeNow() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+function formatPersianDate(d) {
+  try {
+    return new Intl.DateTimeFormat('fa-IR', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    }).format(d);
+  } catch (e) {
+    return d.toLocaleDateString();
+  }
+}
+function fmtTime(ms) {
+  const total = Math.floor(ms / 100);
+  const cs = total % 10;
+  const s = Math.floor(total / 10) % 60;
+  const m = Math.floor(total / 600) % 60;
+  const h = Math.floor(total / 36000);
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' +
+         String(s).padStart(2, '0') + '.' + cs;
+}
+
+/* ============ TOAST ============ */
+const Toast = {
+  show(msg) {
+    let el = document.getElementById('toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'toast';
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2400);
+  }
+};
+
+/* ============ ACHIEVEMENTS ============ */
+const ACHIEVEMENTS = [
+  { id: 'first_step', title: 'اولین قدم', desc: 'اولین امتیاز خود را کسب کنید', icon: '👣', check: () => State.points >= 1 },
+  { id: 'task_5', title: 'کارآمد', desc: '۵ کار را تکمیل کنید', icon: '✅', check: () => State.counters.tasksDone >= 5 },
+  { id: 'task_10', title: 'منظم', desc: '۱۰ کار را تکمیل کنید', icon: '🎯', check: () => State.counters.tasksDone >= 10 },
+  { id: 'chat_1', title: 'گفت‌وگو', desc: 'اولین پیام به دستیار بفرستید', icon: '💬', check: () => State.counters.msgsSent >= 1 },
+  { id: 'riddle_1', title: 'حل‌کننده', desc: 'یک معما حل کنید', icon: '🧩', check: () => State.play.riddleSolved >= 1 },
+  { id: 'iq_1', title: 'ذهن تیز', desc: 'یک آزمون هوش را درست حل کنید', icon: '🧠', check: () => State.play.iqSolved >= 1 },
+  { id: 'days_3', title: 'پیوسته', desc: 'در ۳ روز فعالیت کنید', icon: '🔥', check: () => State.activityDays.length >= 3 },
+  { id: 'explorer', title: 'کاوشگر', desc: 'همه بخش‌ها را ببینید', icon: '🧭', check: () => State.views.length >= 8 }
+];
+
+function checkAchievements() {
+  let unlocked = false;
+  for (const a of ACHIEVEMENTS) {
+    if (!State.achievements.includes(a.id) && a.check()) {
+      State.achievements.push(a.id);
+      unlocked = true;
+      Toast.show('🏆 دستاورد: ' + a.title);
+      TG.haptic('success');
+    }
+  }
+  if (unlocked) {
+    saveState();
+    updateProfileStats();
+  }
+}
+
+/* ============ POINTS ============ */
+function addPoints(n, reason) {
+  if (!n) return;
+  State.points += n;
+  saveState();
+  updateHomeStats();
+  updateProfileStats();
+  checkAchievements();
+  if (reason) Toast.show('+' + n + ' امتیاز — ' + reason);
+}
+
+function markActivity() {
+  const t = todayKey();
+  if (!State.activityDays.includes(t)) {
+    State.activityDays.push(t);
+    saveState();
+  }
+}
+
+/* ============ AI SERVICE ============ */
+const AI = {
+  async send(history) {
+    const endpoint = State.aiEndpoint;
+    if (!endpoint) {
+      return { text: demoReply(history), demo: true };
+    }
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: history.map(m => ({ role: m.role, content: m.text }))
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const reply =
+        data.reply ||
+        data.text ||
+        data.message ||
+        (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
+        '';
+      if (!reply) throw new Error('پاسخ خالی از سرور');
+      return { text: reply };
+    } catch (e) {
+      throw e;
+    }
+  }
+};
+
+function demoReply(history) {
+  const last = (history[history.length - 1] && history[history.length - 1].text || '').toLowerCase();
+  if (/سلام|درود|hi|hello/.test(last)) {
+    return 'سلام! من NEXUS هستم. این پاسخ نمایشی است. برای گفت‌وگوی واقعی، endpoint بک‌اند را در تنظیمات پروفایل وارد کنید.';
+  }
+  if (/اسم|نام/.test(last)) {
+    return 'نام من NEXUS است. (حالت نمایشی — برای پاسخ واقعی، یک سرور AI متصل کنید)';
+  }
+  if (/چیست|چرا|چطور|چگونه|\?/.test(last)) {
+    return 'برای پاسخ‌دهی به این سؤال نیاز به اتصال به سرور هوش مصنوعی است. در حالت فعلی پاسخ نمایشی نمایش داده می‌شود.';
+  }
+  const replies = [
+    'این یک پاسخ نمایشی است. برای اتصال واقعی، endpoint بک‌اند را در تنظیمات وارد کنید.',
+    'در حالت فعلی به سرور هوش مصنوعی متصل نیستم. این پیام فقط برای تست رابط کاربری است.',
+    'من NEXUS هستم. برای فعال‌سازی گفت‌وگوی واقعی، یک endpoint سرور در بخش تنظیمات پروفایل تنظیم کنید.'
+  ];
+  return replies[Math.floor(Math.random() * replies.length)];
+}
+
+/* ============ ROUTER ============ */
+const Router = {
+  current: 'home',
+  go(view) {
+    document.querySelectorAll('.view').forEach(v => {
+      v.classList.toggle('active', v.dataset.view === view);
+    });
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      const sub = ['opportunities', 'play', 'tools', 'profile'].includes(view);
+      b.classList.toggle('active', b.dataset.target === view || (b.dataset.target === 'more' && sub));
+    });
+    this.current = view;
+    if (!State.views.includes(view)) {
+      State.views.push(view);
+      saveState();
+      checkAchievements();
+    }
+    const init = Views[view];
+    if (init) init();
+    const main = document.getElementById('appMain');
+    if (main) main.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    TG.haptic('light');
+  }
+};
+
+/* ============ VIEWS ============ */
+const Views = {
+  home: renderHome,
+  assistant: renderAssistant,
+  tasks: renderTasks,
+  learn: renderLearn,
+  opportunities: renderOpportunities,
+  play: renderPlay,
+  tools: renderTools,
+  profile: renderProfile,
+  more: () => {}
+};
+
+/* ============ HOME ============ */
+function renderHome() {
+  updateHomeStats();
+  const hour = new Date().getHours();
+  let greet = 'سلام';
+  if (hour < 12) greet = 'صبح بخیر';
+  else if (hour < 17) greet = 'وقت بخیر';
+  else if (hour < 21) greet = 'عصر بخیر';
+  else greet = 'شب بخیر';
+
+  const greetEl = document.getElementById('greetText');
+  if (greetEl) greetEl.textContent = greet + ' 👋';
+
+  const name = TG.user.first_name || 'کاربر';
+  const heroName = document.getElementById('heroName');
+  if (heroName) {
+    heroName.textContent = TG.user.username ? name + ' (@' + TG.user.username + ')' : name;
+  }
+
+  const heroDate = document.getElementById('heroDate');
+  if (heroDate) heroDate.textContent = formatPersianDate(new Date());
+
+  const av = document.getElementById('homeAvatar');
+  if (av) setAvatar(av, TG.user);
+}
+
+function updateHomeStats() {
+  const p = document.getElementById('homePoints');
+  if (p) p.textContent = State.points;
+  const d = document.getElementById('homeDays');
+  if (d) d.textContent = State.activityDays.length;
+  const t = document.getElementById('homeTasks');
+  if (t) t.textContent = State.counters.tasksDone || 0;
+}
+
+function setAvatar(el, user) {
+  if (user.photo_url) {
+    el.innerHTML = '<img src="' + escapeHtml(user.photo_url) + '" alt="">';
+    el.style.background = 'transparent';
+  } else {
+    el.textContent = (user.first_name || 'N').charAt(0).toUpperCase();
+    el.style.background = '';
+  }
+}
+
+/* ============ ASSISTANT ============ */
+function renderAssistant() {
+  renderChat();
+  const input = document.getElementById('chatInput');
+  if (input && !input._bound) {
+    input._bound = true;
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  }
+  const btn = document.getElementById('chatSend');
+  if (btn && !btn._bound) {
+    btn._bound = true;
+    btn.addEventListener('click', sendChat);
+  }
+  const clr = document.getElementById('clearChatBtn');
+  if (clr && !clr._bound) {
+    clr._bound = true;
+    clr.addEventListener('click', () => {
+      if (!State.chat.length) return;
+      if (!confirm('تاریخچه گفت‌وگو پاک شود؟')) return;
+      State.chat = [];
+      saveState();
+      renderChat();
+      Toast.show('تاریخچه پاک شد');
+    });
+  }
+}
+
+function renderChat() {
+  const box = document.getElementById('chatBox');
+  if (!box) return;
+  if (!State.chat.length) {
+    box.innerHTML =
+      '<div class="chat-empty">' +
+        '<div class="chat-empty-ico">💬</div>' +
+        '<p>گفت‌وگو را شروع کنید</p>' +
+        '<p class="muted small">وضعیت: حالت نمایشی (بدون اتصال به AI واقعی)</p>' +
+      '</div>';
+    return;
+  }
+  box.innerHTML = State.chat.map(m =>
+    '<div class="msg ' + (m.role === 'user' ? 'msg-user' : 'msg-bot') + '">' +
+      '<div class="msg-bubble">' + escapeHtml(m.text) + '</div>' +
+      (m.time ? '<div class="msg-time">' + escapeHtml(m.time) + '</div>' : '') +
+    '</div>'
+  ).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  State.chat.push({ role: 'user', text: text, time: timeNow() });
+  State.counters.msgsSent = (State.counters.msgsSent || 0) + 1;
+  saveState();
+  renderChat();
+  addPoints(1);
+  checkAchievements();
+
+  showTyping();
+
+  try {
+    const reply = await AI.send(State.chat);
+    hideTyping();
+    State.chat.push({
+      role: 'assistant',
+      text: reply.text,
+      time: timeNow(),
+      demo: reply.demo
+    });
+    saveState();
+    renderChat();
+  } catch (e) {
+    hideTyping();
+    State.chat.push({
+      role: 'assistant',
+      text: 'خطا در دریافت پاسخ: ' + (e.message || 'نامشخص'),
+      time: timeNow()
+    });
+    saveState();
+    renderChat();
+  }
+}
+
+function showTyping() {
+  const box = document.getElementById('chatBox');
+  if (!box) return;
+  const el = document.createElement('div');
+  el.id = 'typingIndicator';
+  el.className = 'msg msg-bot typing';
+  el.innerHTML = '<div class="msg-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+/* ============ TASKS ============ */
+function renderTasks() {
+  renderTaskProgress();
+  renderTaskList();
+  const form = document.getElementById('taskForm');
+  if (form && !form._bound) {
+    form._bound = true;
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      addTask();
+    });
+  }
+}
+
+function addTask() {
+  const titleEl = document.getElementById('taskTitle');
+  const timeEl = document.getElementById('taskTime');
+  if (!titleEl) return;
+  const title = titleEl.value.trim();
+  if (!title) return;
+
+  State.tasks.push({
+    id: Date.now() + Math.random(),
+    title: title,
+    time: (timeEl && timeEl.value) || '',
+    done: false,
+    created: Date.now()
+  });
+  State.counters.tasksAdded = (State.counters.tasksAdded || 0) + 1;
+  saveState();
+  titleEl.value = '';
+  if (timeEl) timeEl.value = '';
+  addPoints(5, 'افزودن کار');
+  renderTaskProgress();
+  renderTaskList();
+  TG.haptic('success');
+}
+
+function toggleTask(id) {
+  const t = State.tasks.find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  if (t.done) {
+    State.counters.tasksDone = (State.counters.tasksDone || 0) + 1;
+    addPoints(10, 'تکمیل کار');
+  }
+  saveState();
+  renderTaskProgress();
+  renderTaskList();
+  TG.haptic(t.done ? 'success' : 'light');
+}
+
+function editTask(id) {
+  const t = State.tasks.find(x => x.id === id);
+  if (!t) return;
+  const nt = prompt('عنوان جدید:', t.title);
+  if (nt === null) return;
+  const trimmed = nt.trim();
+  if (!trimmed) return;
+  t.title = trimmed;
+  saveState();
+  renderTaskList();
+}
+
+function deleteTask(id) {
+  State.tasks = State.tasks.filter(x => x.id !== id);
+  saveState();
+  renderTaskProgress();
+  renderTaskList();
+}
+
+function renderTaskProgress() {
+  const total = State.tasks.length;
+  const done = State.tasks.filter(t => t.done).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const bar = document.getElementById('taskProgressBar');
+  const txt = document.getElementById('taskProgressText');
+  if (bar) bar.style.width = pct + '%';
+  if (txt) txt.textContent = pct + '%';
+}
+
+function renderTaskList() {
+  const list = document.getElementById('taskList');
+  if (!list) return;
+  if (!State.tasks.length) {
+    list.innerHTML = '<div class="empty">هنوز کاری اضافه نشده است</div>';
+    return;
+  }
+  const tasks = [...State.tasks].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    if (a.time && b.time) return a.time.localeCompare(b.time);
+    if (a.time) return -1;
+    if (b.time) return 1;
+    return a.created - b.created;
+  });
+  list.innerHTML = tasks.map(t =>
+    '<div class="task-item ' + (t.done ? 'done' : '') + '">' +
+      '<button class="task-check" data-action="toggle" data-id="' + t.id + '">' + (t.done ? '✓' : '') + '</button>' +
+      '<div class="task-body">' +
+        '<div class="task-title">' + escapeHtml(t.title) + '</div>' +
+        (t.time ? '<div class="task-time">⏰ ' + escapeHtml(t.time) + '</div>' : '') +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button data-action="edit" data-id="' + t.id + '">✏️</button>' +
+        '<button data-action="delete" data-id="' + t.id + '">🗑️</button>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+  list.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = parseFloat(btn.dataset.id);
+      const act = btn.dataset.action;
+      if (act === 'toggle') toggleTask(id);
+      else if (act === 'edit') editTask(id);
+      else if (act === 'delete') deleteTask(id);
+    });
+  });
+}
+
+/* ============ LEARN ============ */
+const LEARN_DATA = {
+  categories: [
+    { id: 'programming', label: 'برنامه‌نویسی', icon: '💻' },
+    { id: 'ai', label: 'هوش مصنوعی', icon: '🤖' },
+    { id: 'science', label: 'علوم', icon: '🔬' },
+    { id: 'language', label: 'زبان‌های خارجی', icon: '🌍' },
+    { id: 'soft', label: 'مهارت‌های فردی', icon: '🌟' }
+  ],
+  items: {
+    programming: [
+      { title: 'freeCodeCamp', desc: 'دوره‌های رایگان برنامه‌نویسی وب و بیشتر', url: 'https://www.freecodecamp.org', level: 'مقدماتی تا پیشرفته' },
+      { title: 'MDN Web Docs', desc: 'مرجع رسمی وب برای HTML/CSS/JS', url: 'https://developer.mozilla.org', level: 'مرجع' },
+      { title: 'CS50 هاروارد', desc: 'دوره مقدماتی علوم کامپیوتر', url: 'https://cs50.harvard.edu', level: 'مقدماتی' },
+      { title: 'The Odin Project', desc: 'مسیر یادگیری توسعه وب به صورت پروژه‌محور', url: 'https://www.theodinproject.com', level: 'متوسط' }
+    ],
+    ai: [
+      { title: 'Fast.ai', desc: 'دوره‌های کاربردی یادگیری عمیق', url: 'https://www.fast.ai', level: 'متوسط' },
+      { title: 'Coursera — Machine Learning', desc: 'دوره اندرو نگ در یادگیری ماشین', url: 'https://www.coursera.org/learn/machine-learning', level: 'مقدماتی' },
+      { title: 'Hugging Face Course', desc: 'دوره NLP و ترنسفورمرها', url: 'https://huggingface.co/learn', level: 'متوسط' }
+    ],
+    science: [
+      { title: 'Khan Academy', desc: 'دوره‌های ریاضی، فیزیک، شیمی و زیست', url: 'https://www.khanacademy.org', level: 'همه سطوح' },
+      { title: 'MIT OpenCourseWare', desc: 'دوره‌های دانشگاهی رایگان MIT', url: 'https://ocw.mit.edu', level: 'پیشرفته' },
+      { title: 'PhET Simulations', desc: 'شبیه‌سازی‌های تعاملی علوم', url: 'https://phet.colorado.edu', level: 'تعاملی' }
+    ],
+    language: [
+      { title: 'Duolingo', desc: 'یادگیری زبان به صورت بازی‌وار', url: 'https://www.duolingo.com', level: 'مقدماتی' },
+      { title: 'BBC Learning English', desc: 'منابع رایگان آموزش انگلیسی', url: 'https://www.bbc.co.uk/learningenglish', level: 'همه سطوح' },
+      { title: 'Anki', desc: 'فلش‌کارت با تکرار فاصله‌دار', url: 'https://apps.ankiweb.net', level: 'ابزار' }
+    ],
+    soft: [
+      { title: 'Coursera — Learning How to Learn', desc: 'تکنیک‌های یادگیری مؤثر', url: 'https://www.coursera.org/learn/learning-how-to-learn', level: 'مقدماتی' },
+      { title: 'TED Talks', desc: 'سخنرانی‌های انگیزشی و آموزشی', url: 'https://www.ted.com', level: 'همه' },
+      { title: 'MindTools', desc: 'مهارت‌های مدیریت زمان و رهبری', url: 'https://www.mindtools.com', level: 'کاربردی' }
+    ]
+  }
+};
+
+function renderLearn() {
+  const cats = document.getElementById('learnCats');
+  const list = document.getElementById('learnList');
+  if (!cats || !list) return;
+  if (!renderLearn._active) renderLearn._active = LEARN_DATA.categories[0].id;
+
+  cats.innerHTML = LEARN_DATA.categories.map(c =>
+    '<button class="chip ' + (c.id === renderLearn._active ? 'active' : '') + '" data-cat="' + c.id + '">' + c.icon + ' ' + c.label + '</button>'
+  ).join('');
+  cats.querySelectorAll('[data-cat]').forEach(b => {
+    b.addEventListener('click', () => {
+      renderLearn._active = b.dataset.cat;
+      renderLearn();
+    });
+  });
+
+  const items = LEARN_DATA.items[renderLearn._active] || [];
+  list.innerHTML = items.length
+    ? items.map(it =>
+        '<a class="learn-item" href="' + it.url + '" target="_blank" rel="noopener noreferrer">' +
+          '<div class="learn-head">' +
+            '<div class="learn-title">' + escapeHtml(it.title) + '</div>' +
+            '<div class="learn-level">' + escapeHtml(it.level) + '</div>' +
+          '</div>' +
+          '<div class="learn-desc">' + escapeHtml(it.desc) + '</div>' +
+          '<div class="learn-link">مشاهده ↗</div>' +
+        '</a>'
+      ).join('')
+    : '<div class="empty">موردی یافت نشد</div>';
+}
+
+/* ============ OPPORTUNITIES ============ */
+const OPP_DATA = {
+  categories: [
+    { id: 'scholarship', label: 'بورسیه', icon: '🎓' },
+    { id: 'contest', label: 'مسابقات', icon: '🏆' },
+    { id: 'olympiad', label: 'المپیاد', icon: '🥇' },
+    { id: 'free', label: 'دوره رایگان', icon: '🆓' },
+    { id: 'event', label: 'رویداد فناوری', icon: '🚀' }
+  ],
+  items: {
+    scholarship: [
+      { title: 'بورسیه تحصیلی ترکیه (Türkiye Bursları)', desc: 'بورسیه دولتی ترکیه برای مقاطع کارشناسی و تحصیلات تکمیلی.', url: 'https://turkiyeburslari.gov.tr', note: 'تاریخ‌ها را در سایت رسمی بررسی کنید.' },
+      { title: 'بورسیه Erasmus Mundus', desc: 'برنامه کارشناسی ارشد مشترک اروپا با بورسیه کامل.', url: 'https://erasmus-plus.ec.europa.eu', note: 'دوره‌های مختلف با ددلاین متفاوت.' },
+      { title: 'بورسیه DAAD آلمان', desc: 'بورسیه‌های تحصیلی و پژوهشی آلمان.', url: 'https://www.daad.de/en/', note: 'بر اساس مقطع و رشته.' }
+    ],
+    contest: [
+      { title: 'جشنواره خوارزمی', desc: 'معتبرترین جشنواره پژوهشی دانش‌آموزی ایران.', url: 'https://khwarizmi.medu.ir', note: 'زمان‌بندی هر ساله از طریق مدرسه اعلام می‌شود.' },
+      { title: 'المپیاد کامپیوتر ایران', desc: 'المپیاد ملی کامپیوتر برای دانش‌آموزان.', url: 'https://olympiad.medu.ir', note: 'ثبت‌نام از طریق مدرسه.' }
+    ],
+    olympiad: [
+      { title: 'المپیادهای علمی دانش‌آموزی', desc: 'هفت المپیاد رسمی کشور (ریاضی، فیزیک، شیمی، زیست، کامپیوتر، نجوم، ادبی).', url: 'https://olympiad.medu.ir', note: 'اطلاعیه‌ها از طریق باشگاه دانش‌پژوهان.' },
+      { title: 'المپیاد ریاضی جهانی (IMO)', desc: 'رقابت بین‌المللی ریاضی برای دانش‌آموزان.', url: 'https://www.imo-official.org', note: 'انتخاب از طریق المپیاد ملی.' }
+    ],
+    free: [
+      { title: 'Coursera Audit', desc: 'دسترسی رایگان به بسیاری از دوره‌های Coursera.', url: 'https://www.coursera.org', note: 'بدون گواهی‌نامه در حالت Audit.' },
+      { title: 'edX', desc: 'دوره‌های رایگان دانشگاه‌های برتر جهان.', url: 'https://www.edx.org', note: 'گواهی‌نامه ممکن است هزینه داشته باشد.' },
+      { title: 'freeCodeCamp', desc: 'یادگیری برنامه‌نویسی به‌طور کامل رایگان.', url: 'https://www.freecodecamp.org', note: '—' }
+    ],
+    event: [
+      { title: 'رویدادهای Google Developers', desc: 'رویدادهای توسعه‌دهندگان گوگل.', url: 'https://developers.google.com/events', note: 'رویدادهای آنلاین و حضوری.' },
+      { title: 'Microsoft Learn Events', desc: 'رویدادها و دوره‌های رایگان مایکروسافت.', url: 'https://learn.microsoft.com/training/', note: '—' },
+      { title: 'Devpost Hackathons', desc: 'فهرست هکاتون‌های آنلاین و حضوری.', url: 'https://devpost.com/hackathons', note: 'بر اساس زمان و موضوع.' }
+    ]
+  }
+};
+
+function renderOpportunities() {
+  const cats = document.getElementById('oppCats');
+  const list = document.getElementById('oppList');
+  if (!cats || !list) return;
+  if (!renderOpportunities._active) renderOpportunities._active = OPP_DATA.categories[0].id;
+
+  cats.innerHTML = OPP_DATA.categories.map(c =>
+    '<button class="chip ' + (c.id === renderOpportunities._active ? 'active' : '') + '" data-cat="' + c.id + '">' + c.icon + ' ' + c.label + '</button>'
+  ).join('');
+  cats.querySelectorAll('[data-cat]').forEach(b => {
+    b.addEventListener('click', () => {
+      renderOpportunities._active = b.dataset.cat;
+      renderOpportunities();
+    });
+  });
+
+  const items = OPP_DATA.items[renderOpportunities._active] || [];
+  list.innerHTML = items.length
+    ? items.map(it =>
+        '<a class="opp-item" href="' + it.url + '" target="_blank" rel="noopener noreferrer">' +
+          '<div class="learn-title">' + escapeHtml(it.title) + '</div>' +
+          '<div class="learn-desc">' + escapeHtml(it.desc) + '</div>' +
+          (it.note && it.note !== '—' ? '<div class="opp-note">📌 ' + escapeHtml(it.note) + '</div>' : '') +
+          '<div class="learn-link">مشاهده منبع ↗</div>' +
+        '</a>'
+      ).join('')
+    : '<div class="empty">موردی یافت نشد</div>';
+}
+
+/* ============ PLAY ============ */
+const RIDDLES = [
+  { q: 'چیست که صبح روی چهار پا، ظهر روی دو پا و شب روی سه پا راه می‌رود؟', a: ['انسان'], hint: 'خودت!' },
+  { q: 'چه چیزی را می‌توانی بشکنی بدون اینکه لمسش کنی؟', a: ['قول', 'وعده', 'رکورد'], hint: 'غیرمادی!' },
+  { q: 'هرچه از آن برداری بزرگ‌تر می‌شود، چیست؟', a: ['چاه', 'گودال', 'چاله'], hint: 'کندن!' },
+  { q: 'شهری در ایران که اسمش هم اسم یک عدد است؟', a: ['هشتپر'], hint: 'شمال کشور' },
+  { q: 'دو نفر در حال شطرنج بودند. سه بازی بازی کردند و هر کدام دو بازی را بردند. چطور ممکن است؟', a: ['با نفر دیگر', 'با شخص دیگر', 'حریف دیگر'], hint: 'حریف کی بود؟' },
+  { q: 'کدام ماه است که ۲۸ روز دارد؟', a: ['همه', 'همه ماه‌ها'], hint: 'دقت کن!' }
+];
+
+const IQ_QUESTIONS = [
+  { q: 'اگر ۵ ماشین در ۵ دقیقه ۵ قطعه بسازند، ۱۰۰ ماشین در چند دقیقه ۱۰۰ قطعه می‌سازند؟', options: ['۱۰۰ دقیقه', '۲۰ دقیقه', '۵ دقیقه', '۵۰ دقیقه'], answer: 2 },
+  { q: 'الگوی عددی: ۲، ۶، ۱۲، ۲۰، ... عدد بعدی؟', options: ['۳۰', '۲۸', '۳۲', '۲۶'], answer: 0 },
+  { q: 'اگر امروز سه‌شنبه باشد، ۱۰۰ روز بعد چه روزی است؟', options: ['پنجشنبه', 'جمعه', 'شنبه', 'چهارشنبه'], answer: 0 },
+  { q: 'کدام یک با بقیه متفاوت است؟', options: ['مربع', 'دایره', 'مثلث', 'مستطیل'], answer: 1 },
+  { q: 'الگو: ۱، ۴، ۹، ۱۶، ... عدد بعدی؟', options: ['۲۰', '۲۵', '۳۰', '۳۶'], answer: 1 }
+];
+
+function renderPlay() {
+  if (!renderPlay._tab) renderPlay._tab = 'riddle';
+  document.querySelectorAll('[data-playtab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.playtab === renderPlay._tab);
+    if (!b._bound) {
+      b._bound = true;
+      b.addEventListener('click', () => {
+        renderPlay._tab = b.dataset.playtab;
+        renderPlay();
+      });
+    }
+  });
+  const area = document.getElementById('playArea');
+  if (!area) return;
+  if (renderPlay._tab === 'riddle') renderRiddle(area);
+  else if (renderPlay._tab === 'iq') renderIQ(area);
+  else renderBoard(area);
+}
+
+function renderRiddle(area) {
+  if (renderRiddle._idx == null) renderRiddle._idx = 0;
+  const r = RIDDLES[renderRiddle._idx % RIDDLES.length];
+  area.innerHTML =
+    '<div class="play-card">' +
+      '<div class="play-badge">معمای روز</div>' +
+      '<div class="play-q">' + escapeHtml(r.q) + '</div>' +
+      '<input type="text" id="riddleAnswer" class="input" placeholder="پاسخ شما...">' +
+      '<div class="play-actions">' +
+        '<button class="btn-primary" id="riddleCheck">بررسی پاسخ</button>' +
+        '<button class="btn-ghost" id="riddleNext">معمای بعدی</button>' +
+      '</div>' +
+      '<div id="riddleResult" class="result"></div>' +
+    '</div>';
+
+  area.querySelector('#riddleCheck').addEventListener('click', () => {
+    const ans = (area.querySelector('#riddleAnswer').value || '').trim();
+    const resEl = area.querySelector('#riddleResult');
+    if (!ans) return;
+    const ok = r.a.some(x => ans.includes(x) || x.includes(ans));
+    if (ok) {
+      resEl.innerHTML = '<span class="ok">✓ پاسخ صحیح است!</span>';
+      State.play.riddleSolved = (State.play.riddleSolved || 0) + 1;
+      saveState();
+      addPoints(15, 'حل معما');
+      checkAchievements();
+    } else {
+      resEl.innerHTML = '<span class="no">✗ پاسخ صحیح: ' + escapeHtml(r.a[0]) + '</span>';
+    }
+  });
+
+  area.querySelector('#riddleNext').addEventListener('click', () => {
+    renderRiddle._idx = (renderRiddle._idx + 1) % RIDDLES.length;
+    renderRiddle(area);
+  });
+}
+
+function renderIQ(area) {
+  if (renderIQ._idx == null) renderIQ._idx = 0;
+  const q = IQ_QUESTIONS[renderIQ._idx % IQ_QUESTIONS.length];
+  area.innerHTML =
+    '<div class="play-card">' +
+      '<div class="play-badge">آزمون هوش</div>' +
+      '<div class="play-q">' + escapeHtml(q.q) + '</div>' +
+      '<div class="iq-options">' +
+        q.options.map((o, i) =>
+          '<button class="iq-opt" data-i="' + i + '">' + escapeHtml(o) + '</button>'
+        ).join('') +
+      '</div>' +
+      '<button class="btn-ghost mt" id="iqNext">سؤال بعدی</button>' +
+      '<div id="iqResult" class="result"></div>' +
+    '</div>';
+
+  area.querySelectorAll('.iq-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn._answered) return;
+      const i = parseInt(btn.dataset.i);
+      area.querySelectorAll('.iq-opt').forEach(b => { b._answered = true; });
+      if (i === q.answer) {
+        btn.classList.add('correct');
+        area.querySelector('#iqResult').innerHTML = '<span class="ok">✓ درست!</span>';
+        State.play.iqSolved = (State.play.iqSolved || 0) + 1;
+        saveState();
+        addPoints(20, 'پاسخ درست آزمون هوش');
+        checkAchievements();
+      } else {
+        btn.classList.add('wrong');
+        area.querySelectorAll('.iq-opt').forEach(b => {
+          if (parseInt(b.dataset.i) === q.answer) b.classList.add('correct');
+        });
+        area.querySelector('#iqResult').innerHTML = '<span class="no">✗ پاسخ صحیح مشخص شد.</span>';
+      }
+    });
+  });
+
+  area.querySelector('#iqNext').addEventListener('click', () => {
+    renderIQ._idx = (renderIQ._idx + 1) % IQ_QUESTIONS.length;
+    renderIQ(area);
+  });
+}
+
+function renderBoard(area) {
+  const name = TG.user.first_name || 'کاربر';
+  const rows = [{ rank: 1, name: name + ' (شما)', score: State.points, you: true }];
+  area.innerHTML =
+    '<div class="play-card">' +
+      '<div class="play-badge">جدول رتبه‌بندی</div>' +
+      '<div class="board">' +
+        rows.map(r =>
+          '<div class="board-row ' + (r.you ? 'you' : '') + '">' +
+            '<span class="b-rank">#' + r.rank + '</span>' +
+            '<span class="b-name">' + escapeHtml(r.name) + '</span>' +
+            '<span class="b-score">' + r.score + '</span>' +
+          '</div>'
+        ).join('') +
+      '</div>' +
+      '<p class="muted small center mt">جدول رتبه‌بندی سراسری نیاز به سرور دارد. در حالت فعلی فقط امتیاز شما نمایش داده می‌شود.</p>' +
+      '<div class="stats-mini">' +
+        '<div>معماهای حل‌شده: <b>' + (State.play.riddleSolved || 0) + '</b></div>' +
+        '<div>آزمون‌های درست: <b>' + (State.play.iqSolved || 0) + '</b></div>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ============ TOOLS ============ */
+const TOOLS = [
+  { id: 'calculator', icon: '🔢', name: 'ماشین‌حساب' },
+  { id: 'converter', icon: '📐', name: 'تبدیل واحد' },
+  { id: 'wordcount', icon: '📝', name: 'شمارش کلمات' },
+  { id: 'password', icon: '🔐', name: 'تولید رمز' },
+  { id: 'timer', icon: '⏱️', name: 'تایمر/کرنومتر' },
+  { id: 'notes', icon: '📒', name: 'یادداشت سریع' }
+];
+
+function renderTools() {
+  const grid = document.getElementById('toolsGrid');
+  if (!grid) return;
+  grid.innerHTML = TOOLS.map(t =>
+    '<button class="tool-card" data-tool="' + t.id + '">' +
+      '<div class="tc-icon">' + t.icon + '</div>' +
+      '<div>' + t.name + '</div>' +
+    '</button>'
+  ).join('');
+  grid.querySelectorAll('[data-tool]').forEach(b => {
+    b.addEventListener('click', () => openTool(b.dataset.tool));
+  });
+}
+
+function openTool(id) {
+  const panel = document.getElementById('toolPanel');
+  if (!panel) return;
+  panel.dataset.open = id;
+  if (id === 'calculator') return toolCalculator(panel);
+  if (id === 'converter') return toolConverter(panel);
+  if (id === 'wordcount') return toolWordCount(panel);
+  if (id === 'password') return toolPassword(panel);
+  if (id === 'timer') return toolTimer(panel);
+  if (id === 'notes') return toolNotes(panel);
+}
+
+function evalExpr(expr) {
+  let s = expr
+    .replace(/÷/g, '/')
+    .replace(/×/g, '*')
+    .replace(/−/g, '-')
+    .replace(/%/g, '/100');
+  if (!/^[0-9+\-*/().\s]*$/.test(s)) throw new Error('invalid');
+  const result = Function('"use strict"; return (' + s + ')')();
+  if (typeof result !== 'number' || !isFinite(result)) throw new Error('math');
+  return Math.round(result * 1e10) / 1e10;
+}
+
+function toolCalculator(panel) {
+  let expr = '';
+  const keys = ['C','⌫','%','÷','7','8','9','×','4','5','6','−','1','2','3','+','0','.','=',''];
+  const render = () => {
+    panel.innerHTML =
+      '<div class="tool-panel">' +
+        '<h3 class="tool-title">ماشین‌حساب</h3>' +
+        '<div class="calc-display">' + (expr || '0') + '</div>' +
+        '<div class="calc-grid">' +
+          keys.map(k => {
+            if (!k) return '<span></span>';
+            const cls = ['C','⌫','%','÷','×','−','+','='].includes(k) ? 'calc-op' : '';
+            return '<button class="calc-btn ' + cls + '" data-k="' + k + '">' + k + '</button>';
+          }).join('') +
+        '</div>' +
+      '</div>';
+    panel.querySelectorAll('[data-k]').forEach(b => {
+      b.addEventListener('click', () => onCalc(b.dataset.k));
+    });
+  };
+  const onCalc = (k) => {
+    if (k === 'C') { expr = ''; render(); return; }
+    if (k === '⌫') { expr = expr.slice(0, -1); render(); return; }
+    if (k === '=') {
+      try { expr = String(evalExpr(expr)); }
+      catch (e) { expr = 'خطا'; }
+      render();
+      return;
+    }
+    expr += k;
+    render();
+  };
+  render();
+}
+
+function toolConverter(panel) {
+  const cats = {
+    length: {
+      name: 'طول',
+      units: { m: 'متر', km: 'کیلومتر', cm: 'سانتی‌متر', mm: 'میلی‌متر', in: 'اینچ', ft: 'فوت', mi: 'مایل' },
+      factors: { m: 1, km: 1000, cm: 0.01, mm: 0.001, in: 0.0254, ft: 0.3048, mi: 1609.344 }
+    },
+    weight: {
+      name: 'وزن',
+      units: { kg: 'کیلوگرم', g: 'گرم', mg: 'میلی‌گرم', ton: 'تن', lb: 'پوند', oz: 'اونس' },
+      factors: { kg: 1, g: 0.001, mg: 0.000001, ton: 1000, lb: 0.453592, oz: 0.0283495 }
+    },
+    temp: {
+      name: 'دما',
+      units: { c: 'سلسیوس', f: 'فارنهایت', k: 'کلوین' },
+      special: true
+    }
+  };
+  let cat = 'length';
+  let val = '1';
+  let from = 'm';
+  let to = 'km';
+
+  const convert = () => {
+    const c = cats[cat];
+    const n = parseFloat(val);
+    if (isNaN(n)) return '—';
+    if (c.special) {
+      let celsius = n;
+      if (from === 'f') celsius = (n - 32) * 5 / 9;
+      if (from === 'k') celsius = n - 273.15;
+      let out = celsius;
+      if (to === 'f') out = celsius * 9 / 5 + 32;
+      if (to === 'k') out = celsius + 273.15;
+      return Math.round(out * 1000) / 1000;
+    }
+    return Math.round(n * c.factors[from] / c.factors[to] * 1e6) / 1e6;
+  };
+
+  panel.innerHTML =
+    '<div class="tool-panel">' +
+      '<h3 class="tool-title">تبدیل واحد</h3>' +
+      '<div class="row"><select id="convCat" class="input"></select></div>' +
+      '<div class="row"><input type="number" class="input" id="convVal" value="' + val + '" step="any"></div>' +
+      '<div class="row two">' +
+        '<select id="convFrom" class="input"></select>' +
+        '<select id="convTo" class="input"></select>' +
+      '</div>' +
+      '<div class="conv-result" id="convResult"></div>' +
+    '</div>';
+
+  const catSel = panel.querySelector('#convCat');
+  const valInp = panel.querySelector('#convVal');
+  const fromSel = panel.querySelector('#convFrom');
+  const toSel = panel.querySelector('#convTo');
+  const result = panel.querySelector('#convResult');
+
+  const fillUnits = () => {
+    const c = cats[cat];
+    const keys = Object.keys(c.units);
+    if (!keys.includes(from)) from = keys[0];
+    if (!keys.includes(to)) to = keys[1] || keys[0];
+    fromSel.innerHTML = keys.map(k => '<option value="' + k + '" ' + (k === from ? 'selected' : '') + '>' + c.units[k] + '</option>').join('');
+    toSel.innerHTML = keys.map(k => '<option value="' + k + '" ' + (k === to ? 'selected' : '') + '>' + c.units[k] + '</option>').join('');
+    update();
+  };
+  const update = () => { result.textContent = convert(); };
+
+  catSel.innerHTML = Object.keys(cats).map(k => '<option value="' + k + '" ' + (k === cat ? 'selected' : '') + '>' + cats[k].name + '</option>').join('');
+  fillUnits();
+
+  catSel.addEventListener('change', e => { cat = e.target.value; from = ''; to = ''; fillUnits(); });
+  valInp.addEventListener('input', e => { val = e.target.value; update(); });
+  fromSel.addEventListener('change', e => { from = e.target.value; update(); });
+  toSel.addEventListener('change', e => { to = e.target.value; update(); });
+}
+
+function toolWordCount(panel) {
+  panel.innerHTML =
+    '<div class="tool-panel">' +
+      '<h3 class="tool-title">شمارش کلمات</h3>' +
+      '<textarea class="input textarea" id="wcText" placeholder="متن خود را اینجا بنویسید..."></textarea>' +
+      '<div class="wc-stats">' +
+        '<div><b id="wcWords">0</b> کلمه</div>' +
+        '<div><b id="wcChars">0</b> کاراکتر</div>' +
+        '<div><b id="wcNoSpaces">0</b> بدون فاصله</div>' +
+        '<div><b id="wcLines">0</b> خط</div>' +
+      '</div>' +
+    '</div>';
+  const ta = panel.querySelector('#wcText');
+  ta.addEventListener('input', () => {
+    const t = ta.value;
+    const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+    panel.querySelector('#wcWords').textContent = words;
+    panel.querySelector('#wcChars').textContent = t.length;
+    panel.querySelector('#wcNoSpaces').textContent = t.replace(/\s/g, '').length;
+    panel.querySelector('#wcLines').textContent = t ? t.split('\n').length : 0;
+  });
+}
+
+function toolPassword(panel) {
+  let len = 16;
+  const opts = { upper: true, lower: true, digits: true, symbols: true };
+  let out = '';
+  const gen = () => {
+    const sets = [];
+    if (opts.upper) sets.push('ABCDEFGHJKLMNPQRSTUVWXYZ');
+    if (opts.lower) sets.push('abcdefghijkmnopqrstuvwxyz');
+    if (opts.digits) sets.push('23456789');
+    if (opts.symbols) sets.push('!@#$%^&*()-_=+');
+    if (!sets.length) { out = 'حداقل یک گزینه را انتخاب کنید'; return; }
+    const all = sets.join('');
+    const arr = new Uint32Array(len);
+    if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(arr);
+    else for (let i = 0; i < len; i++) arr[i] = Math.random() * 0xffffffff;
+    out = Array.from(arr, x => all[x % all.length]).join('');
+  };
+
+  panel.innerHTML =
+    '<div class="tool-panel">' +
+      '<h3 class="tool-title">تولید رمز تصادفی</h3>' +
+      '<div class="pw-result" id="pwOut"></div>' +
+      '<div class="row"><label>طول: <b id="pwLenVal">' + len + '</b></label>' +
+        '<input type="range" min="6" max="40" value="' + len + '" id="pwLen" style="width:100%;margin-top:6px;accent-color:var(--accent)"></div>' +
+      '<div class="pw-opts">' +
+        [['upper','حروف بزرگ'],['lower','حروف کوچک'],['digits','اعداد'],['symbols','نمادها']].map(([k,l]) =>
+          '<label class="check"><input type="checkbox" data-opt="' + k + '" ' + (opts[k] ? 'checked' : '') + '> ' + l + '</label>'
+        ).join('') +
+      '</div>' +
+      '<button class="btn-primary" id="pwGen" style="width:100%">تولید مجدد</button>' +
+    '</div>';
+
+  const outEl = panel.querySelector('#pwOut');
+  const refresh = () => { gen(); outEl.textContent = out; };
+  refresh();
+
+  panel.querySelector('#pwLen').addEventListener('input', e => {
+    len = parseInt(e.target.value);
+    panel.querySelector('#pwLenVal').textContent = len;
+    refresh();
+  });
+  panel.querySelectorAll('[data-opt]').forEach(cb => {
+    cb.addEventListener('change', e => {
+      opts[e.target.dataset.opt] = e.target.checked;
+      refresh();
+    });
+  });
+  panel.querySelector('#pwGen').addEventListener('click', refresh);
+}
+
+function toolTimer(panel) {
+  panel.innerHTML =
+    '<div class="tool-panel">' +
+      '<h3 class="tool-title">تایمر و کرنومتر</h3>' +
+      '<div class="timer-tabs">' +
+        '<button class="chip active" data-ttab="stopwatch">کرنومتر</button>' +
+        '<button class="chip" data-ttab="countdown">تایمر</button>' +
+      '</div>' +
+      '<div id="timerBody"></div>' +
+    '</div>';
+
+  let tab = 'stopwatch';
+  let swRunning = false, swElapsed = 0, swStart = 0, swInterval = null;
+  let cdTotal = 60000, cdRemaining = 60000, cdInterval = null, cdRunning = false;
+  const body = panel.querySelector('#timerBody');
+
+  const renderSw = () => {
+    body.innerHTML =
+      '<div class="timer-display" id="swDisp">' + fmtTime(swElapsed) + '</div>' +
+      '<div class="timer-actions">' +
+        '<button class="btn-primary" id="swStart">' + (swRunning ? 'توقف' : 'شروع') + '</button>' +
+        '<button class="btn-ghost" id="swReset">صفر</button>' +
+      '</div>';
+    body.querySelector('#swStart').addEventListener('click', () => {
+      if (swRunning) {
+        swRunning = false;
+        clearInterval(swInterval);
+        swElapsed += Date.now() - swStart;
+      } else {
+        swRunning = true;
+        swStart = Date.now();
+        swInterval = setInterval(() => {
+          const d = document.getElementById('swDisp');
+          if (d) d.textContent = fmtTime(swElapsed + (Date.now() - swStart));
+        }, 100);
+      }
+      renderSw();
+    });
+    body.querySelector('#swReset').addEventListener('click', () => {
+      clearInterval(swInterval);
+      swRunning = false;
+      swElapsed = 0;
+      renderSw();
+    });
+  };
+
+  const renderCd = () => {
+    const min = Math.floor(cdRemaining / 60000);
+    const sec = Math.floor((cdRemaining % 60000) / 1000);
+    body.innerHTML =
+      '<div class="timer-display" id="cdDisp">' + String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0') + '</div>' +
+      '<div class="row two">' +
+        '<input type="number" min="1" max="120" value="' + Math.round(cdTotal / 60000) + '" class="input" id="cdMin">' +
+        '<span style="align-self:center;font-size:13px">دقیقه</span>' +
+      '</div>' +
+      '<div class="timer-actions">' +
+        '<button class="btn-primary" id="cdStart">' + (cdRunning ? 'توقف' : 'شروع') + '</button>' +
+        '<button class="btn-ghost" id="cdReset">بازنشانی</button>' +
+      '</div>';
+    body.querySelector('#cdMin').addEventListener('change', e => {
+      const m = Math.max(1, Math.min(120, parseInt(e.target.value) || 1));
+      cdTotal = m * 60000;
+      if (!cdRunning) cdRemaining = cdTotal;
+      renderCd();
+    });
+    body.querySelector('#cdStart').addEventListener('click', () => {
+      if (cdRunning) {
+        clearInterval(cdInterval);
+        cdRunning = false;
+        renderCd();
+      } else {
+        if (cdRemaining <= 0) cdRemaining = cdTotal;
+        cdRunning = true;
+        const end = Date.now() + cdRemaining;
+        cdInterval = setInterval(() => {
+          cdRemaining = end - Date.now();
+          if (cdRemaining <= 0) {
+            clearInterval(cdInterval);
+            cdRunning = false;
+            cdRemaining = 0;
+            TG.haptic('success');
+            Toast.show('⏰ زمان تمام شد!');
+            renderCd();
+            return;
+          }
+          const d = document.getElementById('cdDisp');
+          if (d) {
+            const m = Math.floor(cdRemaining / 60000);
+            const s = Math.floor((cdRemaining % 60000) / 1000);
+            d.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+          }
+        }, 200);
+        renderCd();
+      }
+    });
+    body.querySelector('#cdReset').addEventListener('click', () => {
+      clearInterval(cdInterval);
+      cdRunning = false;
+      cdRemaining = cdTotal;
+      renderCd();
+    });
+  };
+
+  panel.querySelectorAll('[data-ttab]').forEach(b => {
+    b.addEventListener('click', () => {
+      tab = b.dataset.ttab;
+      panel.querySelectorAll('[data-ttab]').forEach(x => x.classList.toggle('active', x.dataset.ttab === tab));
+      if (tab === 'stopwatch') { clearInterval(cdInterval); cdRunning = false; renderSw(); }
+      else { clearInterval(swInterval); swRunning = false; renderCd(); }
+    });
+  });
+
+  renderSw();
+}
+
+function toolNotes(panel) {
+  const render = () => {
+    panel.innerHTML =
+      '<div class="tool-panel">' +
+        '<h3 class="tool-title">یادداشت سریع</h3>' +
+        '<textarea class="input textarea" id="noteText" placeholder="یادداشت جدید..."></textarea>' +
+        '<button class="btn-primary mt" id="noteSave" style="width:100%">ذخیره</button>' +
+        '<div class="notes-list">' +
+          (State.notes.length
+            ? State.notes.map((n, i) =>
+                '<div class="note-item">' +
+                  '<div class="note-text">' + escapeHtml(n.text) + '</div>' +
+                  '<div class="note-meta">' +
+                    '<span>' + escapeHtml(n.time || '') + '</span>' +
+                    '<button data-note-del="' + i + '" style="font-size:14px">🗑️</button>' +
+                  '</div>' +
+                '</div>'
+              ).join('')
+            : '<div class="empty">یادداشتی وجود ندارد</div>') +
+        '</div>' +
+      '</div>';
+    panel.querySelector('#noteSave').addEventListener('click', () => {
+      const t = panel.querySelector('#noteText').value.trim();
+      if (!t) return;
+      State.notes.unshift({ text: t, time: timeNow() });
+      saveState();
+      render();
+      Toast.show('یادداشت ذخیره شد');
+    });
+    panel.querySelectorAll('[data-note-del]').forEach(b => {
+      b.addEventListener('click', () => {
+        State.notes.splice(parseInt(b.dataset.noteDel), 1);
+        saveState();
+        render();
+      });
+    });
+  };
+  render();
+}
+
+/* ============ PROFILE ============ */
+function updateProfileStats() {
+  const p = document.getElementById('pPoints');
+  if (p) p.textContent = State.points;
+  const d = document.getElementById('pDays');
+  if (d) d.textContent = State.activityDays.length;
+  const t = document.getElementById('pTasks');
+  if (t) t.textContent = State.counters.tasksDone || 0;
+  const a = document.getElementById('pAchieve');
+  if (a) a.textContent = State.achievements.length;
+}
+
+function renderProfile() {
+  const name = (TG.user.first_name + ' ' + (TG.user.last_name || '')).trim();
+  const uname = TG.user.username ? '@' + TG.user.username : '@guest';
+
+  const nameEl = document.getElementById('profileName');
+  if (nameEl) nameEl.textContent = name;
+  const uEl = document.getElementById('profileUsername');
+  if (uEl) uEl.textContent = uname;
+
+  const av = document.getElementById('profileAvatar');
+  if (av) setAvatar(av, TG.user);
+
+  updateProfileStats();
+
+  const list = document.getElementById('achieveList');
+  if (list) {
+    list.innerHTML = ACHIEVEMENTS.map(a => {
+      const unlocked = State.achievements.includes(a.id);
+      return '<div class="ach ' + (unlocked ? 'unlocked' : 'locked') + '">' +
+        '<div class="ach-icon">' + a.icon + '</div>' +
+        '<div class="ach-body">' +
+          '<div class="ach-title">' + a.title + '</div>' +
+          '<div class="ach-desc">' + a.desc + '</div>' +
+        '</div>' +
+        '<div class="ach-status">' + (unlocked ? '✓' : '🔒') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  const sw = document.getElementById('themeSwitch');
+  if (sw) {
+    sw.classList.toggle('on', State.theme === 'light');
+    if (!sw._bound) {
+      sw._bound = true;
+      sw.addEventListener('click', toggleTheme);
+    }
+  }
+
+  const ai = document.getElementById('aiEndpoint');
+  if (ai) {
+    if (!ai._bound) {
+      ai._bound = true;
+      ai.value = State.aiEndpoint || '';
+      ai.addEventListener('change', () => {
+        const v = ai.value.trim();
+        if (v && !/^https?:\/\//i.test(v)) {
+          Toast.show('آدرس باید با http:// یا https:// شروع شود');
+          return;
+        }
+        State.aiEndpoint = v;
+        saveState();
+        Toast.show('ذخیره شد');
+      });
+    }
+  }
+
+  const wipe = document.getElementById('wipeBtn');
+  if (wipe && !wipe._bound) {
+    wipe._bound = true;
+    wipe.addEventListener('click', () => {
+      if (!confirm('همه داده‌ها حذف شوند؟ این عمل بازگشت‌ناپذیر است.')) return;
+      Store.clear();
+      location.reload();
+    });
+  }
+}
+
+/* ============ THEME ============ */
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', State.theme);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', State.theme === 'light' ? '#f4f7fc' : '#05070f');
+  if (TG.available) {
+    try {
+      window.Telegram.WebApp.setHeaderColor(State.theme === 'light' ? '#f4f7fc' : '#05070f');
+      window.Telegram.WebApp.setBackgroundColor(State.theme === 'light' ? '#f4f7fc' : '#05070f');
+    } catch (e) {}
+  }
+}
+
+function toggleTheme() {
+  State.theme = State.theme === 'light' ? 'dark' : 'light';
+  saveState();
+  applyTheme();
+  const sw = document.getElementById('themeSwitch');
+  if (sw) sw.classList.toggle('on', State.theme === 'light');
+  Toast.show(State.theme === 'light' ? 'حالت روشن فعال شد' : 'حالت تیره فعال شد');
+}
+
+/* ============ INIT ============ */
+function init() {
+  loadState();
+  TG.init();
+  applyTheme();
+  markActivity();
+
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.addEventListener('click', () => Router.go(b.dataset.target));
+  });
+
+  document.querySelectorAll('[data-goto]').forEach(b => {
+    b.addEventListener('click', () => Router.go(b.dataset.goto));
+  });
+
+  const ht = document.getElementById('themeToggle');
+  if (ht) ht.addEventListener('click', toggleTheme);
+
+  Router.go('home');
+  saveState();
+
+  setInterval(() => {
+    if (Router.current === 'home') {
+      const el = document.getElementById('heroDate');
+      if (el) el.textContent = formatPersianDate(new Date());
+    }
+  }, 60000);
+
+  if (TG.available) {
+    try {
+      const bb = window.Telegram.WebApp.BackButton;
+      if (bb) {
+        bb.onClick(() => {
+          if (Router.current !== 'home') Router.go('home');
+          else window.Telegram.WebApp.close();
+        });
+      }
+    } catch (e) {}
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+  </html>
